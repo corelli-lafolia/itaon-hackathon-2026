@@ -1,4 +1,4 @@
-# ItaOn · assistente financeiro para o primeiro salário
+# ItaOn · Assistente financeiro para o primeiro salário
 
 > **Protótipo de hackathon.** Exercício desenvolvido no Hackathon Itaú, Case A: Primeira vida financeira. **Não é um produto oficial do Itaú.** Todos os dados são fictícios.
 
