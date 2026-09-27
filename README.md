@@ -4,7 +4,7 @@
 
 ## Acesse o protótipo
 
-**👉 [Abrir o protótipo](https://SEU-USUARIO.github.io/itaon-hackathon/)**
+**👉 [Abrir o protótipo](https://corelli-lafolia.github.io/itaon-hackathon/)**
 
 - Funciona no celular e no computador, sem instalar nada.
 - Para a melhor experiência, abra no **Chrome** (Android ou computador) ou no **Safari** (iPhone).
