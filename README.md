@@ -4,7 +4,7 @@
 
 ## Acesse o protótipo
 
-**👉 [Abrir o protótipo](https://corelli-lafolia.github.io/itaon-hackathon/)**
+**👉 [Abrir o protótipo](https://corelli-lafolia.github.io/itaon-hackathon-2026/)**
 
 - Funciona no celular e no computador, sem instalar nada.
 - Para a melhor experiência, abra no **Chrome** (Android ou computador) ou no **Safari** (iPhone).
@@ -57,7 +57,7 @@ O **ItaOn** é um assistente dentro do app que entra em ação no **dia do salá
   - **Windows:** Windows + H;
   - **Mac:** tecla Fn duas vezes.
 - Para investigar problemas, abra o link com **`?debug=1`** no fim. Um painel mostra o que o navegador respondeu.
-
+- Tudo em HTML, CSS e JavaScript puros, sem dependências nem instalação.
 
 ## Próximos passos
 
@@ -67,8 +67,8 @@ O **ItaOn** é um assistente dentro do app que entra em ação no **dia do salá
 4. Explorar: início que se adapta ao uso, conexão com produtos que o banco já tem (como limite garantido por investimento) e parcerias, sempre como opção e nunca como empurrão.
 
 
+
 ---
 
 *Exercício fictício desenvolvido no hackathon. Não é um comunicado ou produto oficial do Itaú. Não use dados reais no protótipo.*
 
-Tudo em HTML, CSS e JavaScript puros, sem dependências nem instalação.
