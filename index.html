@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ItaOn · protótipo</title>
+<style>
+  :root {
+    --laranja: #ec7000;
+    --laranja-claro: #fff1e5;
+    --laranja-acao: #d46300;   /* botões: contraste 3.8:1 com texto grande (AA) */
+    --azul-escuro: #0a1a5c;
+    --fundo: #efeff4;
+    --cartao: #ffffff;
+    --texto: #1b1b1f;
+    --suave: #5f6068;
+    --linha: #e2e2e8;
+    /* cores do gráfico (paleta validada p/ daltonismo) */
+    --c-contas: #2d5bd8;
+    --c-casa: #1f9d55;
+    --c-invest: #9b4dca;
+    --c-livre: #ec7000;
+    --alerta: #c92a2a;
+    --alerta-claro: #fff0f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #d9d9df; color: var(--texto);
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex; justify-content: center; min-height: 100vh; min-height: 100dvh;
+    -webkit-text-size-adjust: 100%;
+  }
+  .celular {
+    width: 100%; max-width: 400px; min-height: 100vh; min-height: 100dvh; background: var(--fundo);
+    display: flex; flex-direction: column; position: relative;
+  }
+  .aviso-prototipo { background: #1b1b1f; color: #fff; font-size: 10.5px; text-align: center; padding: 5px 8px; }
+  #app { flex: 1; display: flex; flex-direction: column; }
+
+  /* ---------- cabeçalho laranja ---------- */
+  .cabecalho { background: var(--laranja); color: #fff; padding: 18px 18px 18px; display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: #fff; color: var(--texto); display: grid; place-items: center; font-size: 15px; }
+  .cabecalho .nome { font-weight: 600; font-size: 17px; flex: 1; }
+  .cabecalho .icones { display: flex; gap: 20px; }
+  .cabecalho svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 1.8; }
+  .cabecalho .voltar { background: none; border: 0; padding: 0; cursor: pointer; display: grid; place-items: center; }
+  .cabecalho .titulo { flex: 1; }
+  .cabecalho .titulo strong { display: block; font-size: 17px; }
+  .cabecalho .titulo span { font-size: 12px; opacity: .9; }
+  .progresso { height: 4px; background: #ffd2a8; }
+  .progresso div { height: 100%; background: var(--azul-escuro); transition: width .3s; }
+
+  main { flex: 1; padding: 20px 18px 24px; display: flex; flex-direction: column; gap: 16px; }
+  h2 { font-size: 22px; margin: 0; line-height: 1.25; }
+  h3 { font-size: 16px; margin: 0; }
+  p { margin: 0; line-height: 1.45; }
+  .suave { color: var(--suave); font-size: 14px; }
+  .pequeno { font-size: 12px; color: var(--suave); }
+  .cartao { background: var(--cartao); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* ---------- tela inicial ---------- */
+  .secao-titulo { font-weight: 700; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+  .atalhos { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 2px; margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
+  .atalho { flex: none; width: 74px; text-align: center; font-size: 13px; color: var(--texto); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+  .atalho .caixa { width: 74px; height: 74px; border-radius: 16px; background: #fff; display: grid; place-items: center; margin-bottom: 8px; }
+  .atalho svg { width: 26px; height: 26px; stroke: var(--texto); fill: none; stroke-width: 1.7; }
+  .atalho.novo .caixa { background: var(--laranja); }
+  .atalho.novo svg { stroke: #fff; }
+  .atalho span { font-size: 13px; line-height: 1.2; display: block; }
+  .itaon-card { border: 2px solid var(--laranja); animation: entrar .45s ease-out; }
+  .itaon-topo { display: flex; align-items: center; gap: 10px; }
+  .itaon-selo { width: 34px; height: 34px; border-radius: 50%; background: var(--laranja); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 15px; flex: none; }
+  .linha-cartao { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+  .linha-cartao svg { width: 22px; height: 22px; stroke: var(--texto); fill: none; stroke-width: 1.6; }
+  .linha-cartao .seta { margin-left: auto; color: var(--suave); font-size: 20px; }
+  .valor-saldo { font-size: 24px; font-weight: 700; }
+  @keyframes entrar { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .navegacao { background: #fff; border-top: 1px solid var(--linha); display: flex; justify-content: space-around; padding: 8px 4px 14px; position: sticky; bottom: 0; }
+  .navegacao div { text-align: center; font-size: 12px; color: var(--texto); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .navegacao svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+  .navegacao .ativo span.ico { background: var(--azul-escuro); color: #fff; border-radius: 10px; padding: 8px 12px; }
+  .navegacao .ativo svg { stroke: #fff; }
+
+  /* ---------- botões e campos ---------- */
+  .botao { width: 100%; min-height: 54px; border: 0; border-radius: 12px; padding: 14px 16px; font: inherit; font-size: 19px; font-weight: 700; cursor: pointer; background: var(--laranja-acao); color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: filter .15s ease; }
+  .botao:not(:disabled):active { filter: brightness(.88); }
+  .botao:disabled { opacity: .45; cursor: default; }
+  .botao.azul { background: var(--azul-escuro); }
+  .botao.contorno { background: #fff; color: var(--azul-escuro); border: 1.5px solid var(--azul-escuro); }
+  .link { background: none; border: 0; color: #b35300; font: inherit; font-weight: 700; cursor: pointer; padding: 10px 0; min-height: 44px; }
+  .rodape { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+  textarea, input[type=text], input[type=number], select {
+    width: 100%; font: inherit; font-size: 16px; padding: 12px; border: 1.5px solid var(--linha);
+    border-radius: 12px; background: #fff; color: var(--texto);
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--laranja); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { min-height: 44px; border: 1.5px solid var(--linha); background: #fff; border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 15px; cursor: pointer; color: var(--texto); transition: background .15s, border-color .15s; }
+  .chip:active { background: var(--fundo); }
+  .chip.ativo { border-color: var(--laranja); background: var(--laranja-claro); font-weight: 600; }
+  .rotulo { font-size: 14px; font-weight: 600; }
+
+  /* balão do assistente */
+  .balao { display: flex; gap: 10px; align-items: flex-start; }
+  .balao .texto { background: #fff; border-radius: 4px 18px 18px 18px; padding: 12px 14px; font-size: 15px; line-height: 1.4; }
+
+  /* itens */
+  .item-bloco { background: #fff; border: 1.5px solid transparent; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .item-bloco.revisar { border-color: #ffb570; background: #fffaf3; }
+  .item { display: grid; grid-template-columns: 1fr 100px 44px; gap: 8px; align-items: center; }
+  .item input { padding: 10px; font-size: 16px; border-radius: 10px; }
+  .item .remover { border: 0; background: none; cursor: pointer; color: var(--suave); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 10px; }
+  .item .remover:active { background: var(--fundo); }
+  .item-linha2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .item-linha2 select { width: auto; padding: 8px 10px; font-size: 16px; border-radius: 8px; min-height: 40px; }
+  .marca-revisar { font-size: 12px; color: #c2410c; font-weight: 600; }
+  .total { display: flex; justify-content: space-between; font-size: 15px; }
+
+  /* rosquinha */
+  .rosca-area { display: flex; justify-content: center; }
+  .rosca { position: relative; }
+  .rosca svg circle.fatia { transition: stroke-width .15s; cursor: pointer; }
+  .rosca svg circle.fatia:hover, .rosca svg circle.fatia.foco { stroke-width: 30; }
+  .rosca .centro { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+  .rosca .centro .c-rotulo { font-size: 12px; color: var(--suave); max-width: 110px; }
+  .rosca .centro .c-valor { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .legenda { display: flex; flex-direction: column; gap: 10px; }
+  .leg { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: default; }
+  .leg .bolinha { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+  .leg .nome { flex: 1; }
+  .leg .valor { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .leg .pct { color: var(--suave); font-size: 13px; width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* abas investir / objetivo */
+  .abas { display: flex; background: #e4e4ea; border-radius: 12px; padding: 4px; }
+  .abas button { flex: 1; min-height: 44px; border: 0; background: none; padding: 10px; font: inherit; font-size: 14px; font-weight: 600; border-radius: 9px; cursor: pointer; color: var(--suave); }
+  .abas button.ativo { background: #fff; color: var(--texto); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .sugestao { border: 1.5px solid var(--linha); border-radius: 14px; padding: 12px; cursor: pointer; background: #fff; text-align: left; font: inherit; color: inherit; width: 100%; display: flex; gap: 10px; }
+  .sugestao.ativo { border-color: var(--c-invest); background: #f8f0fd; }
+  .sugestao .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--linha); flex: none; margin-top: 2px; }
+  .sugestao.ativo .radio { border: 5px solid var(--c-invest); }
+  .sugestao strong { display: block; font-size: 15px; }
+  .tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .tag { font-size: 11px; background: var(--fundo); border-radius: 6px; padding: 3px 7px; color: var(--suave); }
+  .meta-previsao { background: #f8f0fd; border-radius: 12px; padding: 12px; font-size: 14px; }
+
+  /* resultado */
+  .heroi { background: #fff; color: var(--texto); border-radius: 20px; padding: 22px 18px; text-align: center; }
+  .heroi .rot { font-size: 15px; color: var(--suave); }
+  .heroi .grande { font-size: 52px; font-weight: 800; line-height: 1.05; margin: 6px 0; font-variant-numeric: tabular-nums; }
+  .heroi .sub { font-size: 14px; color: var(--suave); }
+  .resumo { display: flex; flex-direction: column; gap: 10px; }
+  .resumo div { display: flex; gap: 10px; font-size: 15px; align-items: baseline; }
+  .resumo b { font-variant-numeric: tabular-nums; }
+  .alerta { background: var(--alerta-claro); border: 1.5px solid #ffc9c9; color: var(--alerta); border-radius: 14px; padding: 12px; font-size: 14px; }
+  .etiqueta-ia { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #b45309; background: var(--laranja-claro); border-radius: 999px; padding: 4px 10px; align-self: flex-start; }
+  /* painel e cartões da tela inicial */
+  .mini { display: flex; align-items: center; gap: 16px; }
+  .mini .rosca .c-valor { font-size: 12px; }
+  .mini .rosca .c-rotulo { font-size: 9px; }
+  .mini-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .mini-info .num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .cartao.clicavel { cursor: pointer; border: 0; font: inherit; color: inherit; text-align: left; width: 100%; }
+  .leg.clicavel { cursor: pointer; border-radius: 10px; padding: 4px 6px; margin: -4px -6px; }
+  .leg.clicavel.sel { background: var(--fundo); }
+  .leg .sub { display: block; font-size: 12px; color: var(--suave); font-weight: 400; }
+  .transacao { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--linha); font-size: 15px; }
+  .transacao:last-child { border-bottom: 0; }
+  .transacao .bolinha { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .transacao .desc { flex: 1; }
+  .transacao .desc span { display: block; font-size: 12px; color: var(--suave); }
+  .transacao b { font-variant-numeric: tabular-nums; }
+  .insight { background: var(--laranja-claro); border-radius: 14px; padding: 14px; font-size: 15px; line-height: 1.45; display: flex; flex-direction: column; gap: 6px; }
+  /* ícones SVG (um só estilo de traço) */
+  .i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .itaon-selo .i { width: 18px; height: 18px; stroke: #fff; }
+  .etiqueta-ia .i, .marca-revisar .i { width: 14px; height: 14px; }
+  .alerta { display: flex; gap: 8px; align-items: flex-start; }
+  .resumo div { align-items: center !important; }
+  .resumo .i { color: var(--suave); }
+
+  /* foco visível para teclado */
+  :focus-visible { outline: 3px solid var(--azul-escuro); outline-offset: 2px; border-radius: 8px; }
+
+  /* entrada por voz */
+  .voz { display: flex; align-items: center; gap: 14px; background: #fff; border-radius: 16px; padding: 12px 14px; }
+  .btn-mic { width: 60px; height: 60px; border-radius: 50%; border: 0; background: var(--azul-escuro); color: #fff; display: grid; place-items: center; cursor: pointer; flex: none; position: relative; transition: background .2s; }
+  .btn-mic .i { width: 26px; height: 26px; stroke: #fff; }
+  .btn-mic.ouvindo { background: var(--alerta); }
+  .btn-mic.ouvindo::after { content: ""; position: absolute; top: -6px; right: -6px; bottom: -6px; left: -6px; border-radius: 50%; border: 3px solid var(--alerta); animation: pulso 1.2s ease-out infinite; will-change: transform, opacity; pointer-events: none; }
+  .btn-mic { -webkit-tap-highlight-color: transparent; }
+  button, input, select, textarea { touch-action: manipulation; }   /* sem atraso de toque no celular */
+  @keyframes pulso { from { transform: scale(.9); opacity: .9; } to { transform: scale(1.25); opacity: 0; } }
+  .voz-texto { display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+  .ondas { display: inline-flex; gap: 3px; align-items: center; height: 16px; margin-left: 6px; vertical-align: middle; }
+  .ondas span { width: 3px; height: 100%; background: var(--alerta); border-radius: 2px; animation: onda .9s ease-in-out infinite; will-change: transform; }
+  .ondas span:nth-child(2) { animation-delay: .15s; } .ondas span:nth-child(3) { animation-delay: .3s; } .ondas span:nth-child(4) { animation-delay: .45s; }
+  @keyframes onda { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+  .spinner { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: gira .8s linear infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  .cabecalho-itens { display: grid; grid-template-columns: 1fr 100px 44px; gap: 8px; padding: 0 12px; font-size: 12px; color: var(--suave); font-weight: 600; }
+
+  /* respeita quem pediu menos movimento no sistema */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+  /* janela de investimento (bottom sheet) */
+  .sheet-fundo { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(10, 16, 40, .45); z-index: 20; }
+  .sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 400px; max-height: 90vh; max-height: 90dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    background: #fff; border-radius: 22px 22px 0 0; z-index: 21; padding: 10px 18px 0; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 -8px 30px rgba(0,0,0,.18); }
+  .sheet.entrando { animation: subir .32s cubic-bezier(.2,.8,.2,1); }
+  .sheet-fundo.entrando { animation: aparecer .32s ease-out; }
+  @keyframes subir { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+  @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+  .alca { width: 40px; height: 5px; border-radius: 3px; background: var(--linha); margin: 0 auto 4px; flex: none; }
+  .sheet-topo { display: flex; gap: 12px; align-items: flex-start; }
+  .sheet-topo h3 { font-size: 20px; margin: 0 0 2px; }
+  .sheet-topo h3:focus { outline: none; }
+  .fechar { margin-left: auto; width: 44px; height: 44px; border: 0; background: var(--fundo); border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--texto); flex: none; }
+  .valor-escolhido { display: flex; align-items: baseline; justify-content: space-between; }
+  .valor-escolhido .v { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; height: 44px; accent-color: var(--laranja-acao); cursor: pointer; margin: 0; }
+  .limites { display: flex; justify-content: space-between; margin-top: -8px; }
+  .editar-valor { display: flex; align-items: center; gap: 10px; }
+  .editar-valor input { width: 130px; }
+  .prazos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .prazo { min-height: 64px; border: 1.5px solid var(--linha); background: #fff; border-radius: 12px; padding: 8px 6px; font: inherit; cursor: pointer; color: var(--texto); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
+  .prazo b { font-size: 14px; } .prazo span { font-size: 11.5px; color: var(--suave); }
+  .prazo.ativo { border-color: var(--laranja-acao); background: var(--laranja-claro); }
+  .tag.recomendado { background: #f3e8fb; color: #6b2a92; font-weight: 700; }
+  .sheet-rodape { position: sticky; bottom: 0; background: #fff; padding: 10px 0 16px; display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--linha); margin-top: 4px; }
+  .cartao.resumo-guardar { flex-direction: row; align-items: center; gap: 12px; }
+  .resumo-guardar .i { color: var(--c-invest); width: 24px; height: 24px; }
+  .resumo-guardar .txt { flex: 1; }
+  .dica-teclado { background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.45; display: flex; gap: 10px; }
+  .dica-teclado .i { color: var(--azul-escuro); width: 22px; height: 22px; margin-top: 1px; }
+  .cronometro { font-size: 12px; text-align: center; color: var(--suave); }
+</style>
+</head>
+<body>
+<div class="celular">
+  <div class="aviso-prototipo">Protótipo de hackathon · dados fictícios · não é um produto oficial do Itaú</div>
+  <div id="app"></div>
+</div>
+
+<script>
+/* =========================================================
+   1. CONFIGURAÇÃO DA DEMO (mudem aqui, e só aqui)
+   Mantenham os mesmos valores nos slides, vídeo e ficha.
+   ========================================================= */
+const DEMO = {
+  nome: "Cláudio",
+  iniciais: "CL",
+  salario: 2100,
+  mesAtual: "outubro",
+  mesSeguinte: "novembro",
+  proximoPagamento: "05/11",
+  diasAteProximo: 30,
+  textoExemplo: "pago 90 de internet, dou 400 pra minha mãe, fatura de uns 600",
+  falaExemplo: "pago noventa de internet dou quatrocentos pra minha mãe e a fatura do cartão deu uns seiscentos",
+};
+const MODO_TESTE = new URLSearchParams(location.search).has("teste");
+
+/* Sugestões de investimento POR PRAZO (educativas, sem taxas inventadas).
+   Numa versão real, dependem do perfil de investidor (suitability). */
+const SUGESTOES = {
+  agora: [
+    { id: "cdb-liq", nome: "CDB com liquidez diária", desc: "Para reserva de emergência: dá para resgatar quando precisar.", tags: ["Resgate a qualquer hora", "Risco baixo"] },
+    { id: "poupanca", nome: "Poupança", desc: "Simples de entender e de resgatar.", tags: ["Resgate a qualquer hora", "Risco baixo"] },
+  ],
+  "1ano": [
+    { id: "cdb-liq", nome: "CDB com liquidez diária", desc: "Rende mais que deixar parado e continua acessível.", tags: ["Resgate a qualquer hora", "Risco baixo"] },
+    { id: "selic", nome: "Tesouro Selic", desc: "Título público, bom para objetivos de curto prazo.", tags: ["Resgate em D+1", "Risco baixo"] },
+  ],
+  longo: [
+    { id: "selic", nome: "Tesouro Selic", desc: "Base segura para começar a investir.", tags: ["Resgate em D+1", "Risco baixo"] },
+    { id: "ipca", nome: "Tesouro IPCA+", desc: "Protege da inflação para objetivos de longo prazo.", tags: ["Melhor levar até o vencimento", "Oscila no caminho"] },
+  ],
+};
+/* Gastos do dia a dia nos últimos 30 dias (FICTÍCIOS).
+   Na versão real viriam do extrato e do cartão; o ItaOn categoriza. */
+const AREAS = [
+  { id: "ifood",   nome: "iFood",    cor: "#d6336c", unidade: ["pedido", "pedidos"] },
+  { id: "uber",    nome: "Uber",     cor: "#2d5bd8", unidade: ["corrida", "corridas"] },
+  { id: "mercado", nome: "Mercado",  cor: "#1f9d55", unidade: ["compra", "compras"] },
+  { id: "lazer",   nome: "Lazer",    cor: "#9b4dca", unidade: ["gasto", "gastos"] },
+  { id: "farmacia",nome: "Farmácia", cor: "#1098ad", unidade: ["compra", "compras"] },
+  { id: "compras", nome: "Compras online", cor: "#e8590c", unidade: ["compra", "compras"] },
+];
+const TRANSACOES = [
+  ["ifood","iFood",32,"28/09"],["uber","Uber",14,"27/09"],["mercado","Supermercado",62,"26/09"],["ifood","iFood",24,"25/09"],
+  ["uber","Uber",18,"25/09"],["lazer","Cinema",48,"24/09"],["compras","Loja online",79,"23/09"],["ifood","iFood",29,"22/09"],
+  ["uber","Uber",12,"21/09"],["uber","Uber",22,"20/09"],["farmacia","Farmácia",38,"19/09"],["ifood","iFood",21,"18/09"],
+  ["mercado","Supermercado",48,"17/09"],["uber","Uber",16,"16/09"],["lazer","Bar com amigos",67,"14/09"],["ifood","iFood",35,"13/09"],
+  ["uber","Uber",15,"12/09"],["uber","Uber",19,"11/09"],["mercado","Supermercado",71,"10/09"],["ifood","iFood",19,"09/09"],
+  ["uber","Uber",13,"08/09"],["compras","Loja online",51,"07/09"],["ifood","iFood",28,"06/09"],["uber","Uber",21,"05/09"],
+  ["farmacia","Farmácia",24,"04/09"],["lazer","Show",35,"03/09"],["ifood","iFood",26,"02/09"],["uber","Uber",17,"01/09"],
+  ["mercado","Supermercado",33,"31/08"],["ifood","iFood",24,"30/08"],["uber","Uber",19,"29/08"],
+].map(([area, nome, valor, data]) => ({ area, nome, valor, data }));
+
+function resumoAreas() {
+  const lista = AREAS.map(a => {
+    const t = TRANSACOES.filter(x => x.area === a.id);
+    return { ...a, valor: t.reduce((s, x) => s + x.valor, 0), qtd: t.length };
+  }).filter(a => a.valor > 0).sort((a, b) => b.valor - a.valor);
+  return { lista, total: lista.reduce((s, a) => s + a.valor, 0) };
+}
+
+const PRAZOS = [
+  { id: "agora", nome: "Resgate rápido", sub: "a qualquer momento" },
+  { id: "1ano", nome: "Médio prazo", sub: "em até 1 ano" },
+  { id: "longo", nome: "Longo prazo", sub: "daqui a 2 anos ou mais" },
+];
+
+/* =========================================================
+   2. ITAON: INTERPRETAR TEXTO LIVRE EM CONTAS
+   Hoje: SIMULADO (regras + dicionário), roda no navegador.
+   Para usar um modelo de linguagem real, implementem
+   interpretarComIAReal() chamando um BACKEND. Nunca coloquem
+   chave de API neste arquivo (o vídeo é público).
+   ========================================================= */
+const USAR_IA_REAL = false;
+
+const DICIONARIO = [
+  { chaves: ["fatura", "cartao", "cartão"], nome: "Fatura do cartão", cat: "contas" },
+  { chaves: ["internet", "wifi", "wi-fi"], nome: "Internet", cat: "contas" },
+  { chaves: ["celular", "plano", "chip"], nome: "Plano de celular", cat: "contas" },
+  { chaves: ["aluguel"], nome: "Aluguel", cat: "contas" },
+  { chaves: ["luz", "energia"], nome: "Conta de luz", cat: "contas" },
+  { chaves: ["agua", "água"], nome: "Conta de água", cat: "contas" },
+  { chaves: ["academia"], nome: "Academia", cat: "contas" },
+  { chaves: ["faculdade", "curso", "mensalidade"], nome: "Faculdade/curso", cat: "contas" },
+  { chaves: ["onibus", "ônibus", "transporte", "bilhete", "metro", "metrô"], nome: "Transporte", cat: "contas" },
+  { chaves: ["netflix", "spotify", "streaming", "assinatura"], nome: "Assinaturas", cat: "contas" },
+  { chaves: ["parcela", "prestacao", "prestação"], nome: "Parcela", cat: "contas" },
+  { chaves: ["mae", "mãe"], nome: "Ajuda em casa (mãe)", cat: "casa" },
+  { chaves: ["pai"], nome: "Ajuda em casa (pai)", cat: "casa" },
+  { chaves: ["avo", "avó", "avô"], nome: "Ajuda em casa (avó/avô)", cat: "casa" },
+  { chaves: ["casa", "familia", "família", "mercado"], nome: "Ajuda em casa", cat: "casa" },
+];
+const PALAVRAS_APROXIMADAS = ["uns", "umas", "cerca", "mais ou menos", "aprox", "tipo", "quase"];
+/* O reconhecimento de voz às vezes escreve "R$ 30", "BRL 30" ou "30 BRL".
+   Normaliza tudo para "30 reais", que é como a pessoa falou. */
+function normalizarMoeda(t) {
+  return String(t)
+    .replace(/\b(?:BRL|R\$)\s*(\d[\d.,]*)/gi, "$1 reais")
+    .replace(/(\d[\d.,]*)\s*(?:BRL|R\$)(?![a-z])/gi, "$1 reais")
+    .replace(/R\$\s*(\d[\d.,]*)/g, "$1 reais")
+    .replace(/\bBRL\b/gi, "reais")
+    .replace(/(\d+)\s+reais\s+e\s+(\d{1,2})\s+centavos/gi, (m, r, c) => r + "," + (c.length === 1 ? "0" + c : c) + " reais")
+    .replace(/\breais\s+reais\b/gi, "reais")
+    .replace(/\s{2,}/g, " ");
+}
+const PALAVRAS_VAZIAS = new Set(["brl", "real", "rs", "centavos", "pago","pagar","de","do","da","dos","das","uns","umas","dou","pra","para","a","o","as","os","minha","meu","r$","reais","mais","ou","menos","com","eu","tenho","por","mes","mês","todo","gasto","cerca","e","em","no","na","tipo","quase","aprox"]);
+
+function lerNumero(trecho) {
+  const m = trecho.match(/\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?/);
+  if (!m) return null;
+  let s = m[0];
+  if (/\.\d{3}/.test(s)) s = s.replace(/\./g, "");
+  s = s.replace(",", ".");
+  let v = parseFloat(s);
+  if (/\bmil\b/.test(trecho) && v < 100) v *= 1000;
+  return Math.round(v * 100) / 100;
+}
+
+/* Números falados por extenso -> dígitos ("quatrocentos" -> 400, "mil e duzentos" -> 1200) */
+const EXTENSO = { dois:2, duas:2, tres:3, "três":3, quatro:4, cinco:5, seis:6, sete:7, oito:8, nove:9, dez:10,
+  onze:11, doze:12, treze:13, quatorze:14, catorze:14, quinze:15, dezesseis:16, dezessete:17, dezoito:18, dezenove:19,
+  vinte:20, trinta:30, quarenta:40, cinquenta:50, sessenta:60, setenta:70, oitenta:80, noventa:90,
+  cem:100, cento:100, duzentos:200, duzentas:200, trezentos:300, quatrocentos:400, quinhentos:500,
+  seiscentos:600, setecentos:700, oitocentos:800, novecentos:900 };
+function numerosPorExtenso(texto) {
+  const w = texto.split(/\s+/), limpa = x => (x || "").toLowerCase().replace(/[.,;!?]+$/, "");
+  const ehNumero = (i) => limpa(w[i]) in EXTENSO || (["um", "uma"].includes(limpa(w[i])) && limpa(w[i + 1]) === "mil");
+  const out = [];
+  for (let i = 0; i < w.length;) {
+    if (!ehNumero(i) && limpa(w[i]) !== "mil") { out.push(w[i]); i++; continue; }
+    let total = 0, atual = 0, j = i;
+    while (j < w.length) {
+      const k = limpa(w[j]);
+      if (k in EXTENSO) { atual += EXTENSO[k]; j++; }
+      else if (k === "um" || k === "uma") { atual += 1; j++; }
+      else if (k === "mil") { total += (atual || 1) * 1000; atual = 0; j++; }
+      else if (k === "e" && j + 1 < w.length && (limpa(w[j + 1]) in EXTENSO || ["um", "uma"].includes(limpa(w[j + 1])))) { j++; }
+      else break;
+    }
+    const pont = (w[j - 1].match(/[.,;!?]+$/) || [""])[0];
+    out.push(String(total + atual) + pont); i = j;
+  }
+  return out.join(" ");
+}
+
+const RE_NUMERO = /\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?/g;
+const ehAproximado = t => PALAVRAS_APROXIMADAS.some(p => new RegExp("(^|\\s)" + p + "(\\s|$)").test(t));
+
+function itemDeTrecho(trecho) {
+  const valor = lerNumero(trecho);
+  const achado = DICIONARIO.find(d => d.chaves.some(c => trecho.includes(c)));
+  let nome = achado ? achado.nome : trecho
+    .replace(/\d+([.,]\d+)?/g, "").split(/\s+/)
+    .filter(p => p && !PALAVRAS_VAZIAS.has(p)).join(" ");
+  if (!nome) nome = "Conta";
+  nome = nome.charAt(0).toUpperCase() + nome.slice(1);
+  return {
+    nome, valor: valor === null ? 0 : valor,
+    categoria: achado ? achado.cat : "contas",
+    revisar: valor === null ? "Não achamos o valor" : (ehAproximado(trecho) ? "Valor aproximado: confira" : ""),
+  };
+}
+
+/* Fala sem vírgulas: "pago 90 de internet dou 400 pra minha mãe".
+   Liga cada valor à palavra-chave mais próxima (internet, mãe, fatura...). */
+function parearTrecho(trecho) {
+  const palavras = trecho.split(/\s+/);
+  const nums = [], chaves = [];
+  palavras.forEach((p, i) => {
+    if (/\d/.test(p)) nums.push(i);
+    const d = DICIONARIO.find(d => d.chaves.some(c => p.includes(c)));
+    if (d) chaves.push({ i, d });
+  });
+  const pares = [];
+  nums.forEach(n => chaves.forEach(k => pares.push({ n, k, dist: Math.abs(n - k.i) })));
+  pares.sort((a, b) => a.dist - b.dist || a.n - b.n);
+  const numUsado = new Map(), chaveUsada = new Set();
+  pares.forEach(({ n, k }) => { if (!numUsado.has(n) && !chaveUsada.has(k.i)) { numUsado.set(n, k.d); chaveUsada.add(k.i); } });
+  return nums.map(n => {
+    const d = numUsado.get(n);
+    const antes = palavras.slice(Math.max(0, n - 2), n).join(" ");
+    return {
+      nome: d ? d.nome : "Conta", valor: lerNumero(palavras[n]) || 0,
+      categoria: d ? d.cat : "contas",
+      revisar: !d ? "Confira o nome" : (ehAproximado(antes) ? "Valor aproximado: confira" : ""),
+    };
+  });
+}
+
+function interpretarSimulado(texto) {
+  const t = normalizarMoeda(numerosPorExtenso(normalizarMoeda(texto).toLowerCase()))
+    .replace(/(\d),(\d)/g, "$1\u00a7$2");   // protege vírgula decimal (89,90) antes de separar
+  const trechos = t.split(/,|;|\n|\s+e\s+|\s+\+\s+|\.\s/)
+    .map(x => x.replace(/\u00a7/g, ",").trim()).filter(Boolean);
+  return trechos.flatMap(tr => (tr.match(RE_NUMERO) || []).length > 1 ? parearTrecho(tr) : [itemDeTrecho(tr)]);
+}
+
+async function interpretarComIAReal(texto) {
+  // POST /api/interpretar { texto } -> [{ nome, valor, categoria: "contas"|"casa", revisar }]
+  const r = await fetch("/api/interpretar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texto }) });
+  return r.json();
+}
+
+async function interpretarTexto(texto) {
+  if (USAR_IA_REAL) {
+    try { return await interpretarComIAReal(texto); } catch (e) { console.warn("IA real falhou, usando simulação", e); }
+  }
+  await new Promise(r => setTimeout(r, 900));
+  return interpretarSimulado(texto);
+}
+
+/* =========================================================
+   3. CÁLCULO (determinístico: código, não IA)
+   ========================================================= */
+function calcular(e) {
+  const soma = cat => e.itens.filter(i => i.categoria === cat).reduce((t, i) => t + (Number(i.valor) || 0), 0);
+  const contas = soma("contas"), casa = soma("casa");
+  const compromissos = contas + casa;
+  const maxGuardar = Math.max(0, DEMO.salario - compromissos);
+  const guardar = Math.min(Number(e.modo === "investir" ? e.investir : e.metaMensal) || 0, maxGuardar);
+  const livre = DEMO.salario - compromissos - guardar;
+  const porDia = livre > 0 ? Math.floor(livre / DEMO.diasAteProximo) : 0;
+  const mesesMeta = e.modo === "pessoal" && guardar > 0 && e.metaValor > 0 ? Math.ceil(e.metaValor / guardar) : null;
+  return { contas, casa, compromissos, guardar, maxGuardar, livre, porDia, falta: livre < 0 ? -livre : 0, mesesMeta };
+}
+
+/* =========================================================
+   4. ESTADO
+   ========================================================= */
+const estado = {
+  tela: "inicio",   // inicio -> escrever -> conferir -> distribuir -> resultado
+  texto: "", itens: [],
+  modo: "investir", // "investir" | "pessoal"
+  investir: 0, prazo: "agora", produto: null,
+  metaNome: "", metaValor: 0, metaMensal: 0,
+  mes: DEMO.mesAtual, mesesUsados: 0,
+  salarioPendente: true,   // true = cartão "seu salário caiu"; false = cartão com o plano
+  planoFeito: false,
+  abaPainel: "plano",      // "plano" | "gastos"
+  areaSel: null,
+  carregando: false, inicioTarefa: null, fimTarefa: null,
+  ouvindo: false, vozMsg: "", vozFase: "", dicaTeclado: false,
+  vozModo: "api",   // "api" = voz do navegador; "teclado" = ditado do teclado (plano B)
+  sheet: null, sheetVisto: false, sheetAnim: false,
+};
+
+const brl = v => (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+/* ---------- ícones (traço simples) ---------- */
+const ICO = {
+  busca: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  sino: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></svg>',
+  chat: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  voltar: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  pix: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l4 4-4 4-4-4zM12 13l4 4-4 4-4-4zM3 12l4-4 4 4-4 4zM13 12l4-4 4 4-4 4z"/></svg>',
+  pagar: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6v12M8 6v12M11 6v12M14 6v12M17 6v12M20 6v12"/></svg>',
+  itaon: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
+  invest: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20v-5M12 20V9M18 20V4"/></svg>',
+  seguranca: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/></svg>',
+  conta: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>',
+  casa: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/></svg>',
+  extrato: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+  pagamentos: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h15l-3-3M20 16H5l3 3"/></svg>',
+  presente: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="11"/><path d="M3 9h18M12 9v11M12 9c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>',
+  alvo: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".5"/></svg>',
+  carteira: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h14a2 2 0 012 2v9a2 2 0 01-2 2H4z"/><path d="M4 7l11-3v3M16 13h.01"/></svg>',
+  alerta: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
+  x: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  mic: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>',
+  parar: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>',
+  menu: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>',
+};
+
+/* ---------- gráfico de rosquinha (SVG) ---------- */
+function fatias(c) {
+  const nomeGuardar = estado.modo === "pessoal" ? (estado.metaNome || "Objetivo pessoal") : "Investir";
+  return [
+    { nome: "Contas do mês", valor: c.contas, cor: "var(--c-contas)" },
+    { nome: "Casa/família", valor: c.casa, cor: "var(--c-casa)" },
+    { nome: nomeGuardar, valor: c.guardar, cor: "var(--c-invest)" },
+    { nome: "Livre para o dia a dia", valor: Math.max(0, c.livre), cor: "var(--c-livre)" },
+  ];
+}
+
+const totalPlano = c => Math.max(DEMO.salario, c.compromissos);
+window._roscas = {};
+
+/* Rosquinha genérica: segs = [{nome, valor, cor}] */
+function rosca(segs, total, { tamanho = 200, id = "rc", rotulo = "Salário", valor = DEMO.salario } = {}) {
+  const r = 70, C = 2 * Math.PI * r, gap = segs.filter(s => s.valor > 0).length > 1 ? 2 : 0;
+  let acumulado = 0;
+  const circulos = segs.map((s, i) => {
+    if (s.valor <= 0) return "";
+    const comp = s.valor / total * C;
+    const html = `<circle class="fatia" data-i="${i}" cx="90" cy="90" r="${r}" fill="none" stroke="${s.cor}" stroke-width="24"
+      stroke-dasharray="${Math.max(0, comp - gap)} ${C}" stroke-dashoffset="${-acumulado}"
+      onmouseenter="focoRosca('${id}',${i})" onmouseleave="focoRosca('${id}',-1)" onclick="event.stopPropagation();focoRosca('${id}',${i})">
+      <title>${esc(s.nome)}: ${brl(s.valor)}</title></circle>`;
+    acumulado += comp;
+    return html;
+  }).join("");
+  window._roscas[id] = { segs, rotulo, valor };
+  return `
+    <div class="rosca" style="width:${tamanho}px;height:${tamanho}px">
+      <svg viewBox="0 0 180 180" width="${tamanho}" height="${tamanho}" style="transform:rotate(-90deg)" role="img" aria-label="${esc(rotulo)}">
+        <circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--linha)" stroke-width="24"/>
+        ${circulos}
+      </svg>
+      <div class="centro" id="${id}">
+        <span class="c-rotulo">${esc(rotulo)}</span>
+        <span class="c-valor">${brl(valor)}</span>
+      </div>
+    </div>`;
+}
+
+function focoRosca(id, i) {
+  const el = document.getElementById(id); if (!el) return;
+  const info = window._roscas[id];
+  el.parentElement.querySelectorAll(".fatia").forEach(f => f.classList.toggle("foco", Number(f.dataset.i) === i));
+  const s = i < 0 ? { nome: info.rotulo, valor: info.valor } : info.segs[i];
+  el.innerHTML = `<span class="c-rotulo">${esc(s.nome)}</span><span class="c-valor">${brl(s.valor)}</span>`;
+}
+
+function legenda(segs, total) {
+  return `<div class="legenda">${segs.map(s => `
+    <div class="leg"><span class="bolinha" style="background:${s.cor}"></span>
+      <span class="nome">${esc(s.nome)}</span>
+      <span class="valor">${brl(s.valor)}</span>
+      <span class="pct">${Math.round(s.valor / total * 100)}%</span></div>`).join("")}</div>`;
+}
+
+const roscaPlano = (c, tamanho, id) => rosca(fatias(c), totalPlano(c), { tamanho, id });
+const legendaPlano = c => legenda(fatias(c), totalPlano(c));
+
+/* =========================================================
+   5. TELAS
+   ========================================================= */
+function ir(tela) {
+  encerrarVoz();
+  if (tela !== "distribuir") { estado.sheet = null; document.body.style.overflow = ""; }
+  estado.tela = tela; render(); window.scrollTo(0, 0);
+  if (tela === "distribuir" && !estado.sheetVisto) {
+    const c = calcular(estado);
+    if (c.falta === 0 && c.maxGuardar > 0) setTimeout(() => { if (estado.tela === "distribuir") abrirSheet("investir"); }, 500);
+  }
+}
+
+function cabecalhoFluxo(titulo, passo, voltarPara) {
+  return `
+    <div class="cabecalho">
+      <button class="voltar" aria-label="Voltar" onclick="ir('${voltarPara}')">${ICO.voltar}</button>
+      <div class="titulo"><strong>${titulo}</strong><span>seu assistente financeiro</span></div>
+    </div>
+    <div class="progresso"><div style="width:${passo / 4 * 100}%"></div></div>`;
+}
+
+function cabecalhoSimples(titulo, subtitulo, voltarPara) {
+  return `
+    <div class="cabecalho">
+      <button class="voltar" aria-label="Voltar" onclick="ir('${voltarPara}')">${ICO.voltar}</button>
+      <div class="titulo"><strong>${titulo}</strong><span>${subtitulo}</span></div>
+    </div>`;
+}
+
+/* Cartão da tela inicial com o plano do mês (depois da simulação) */
+function cartaoPlano() {
+  const c = calcular(estado);
+  return `
+    <button class="cartao clicavel itaon-card" onclick="abrirPainel('plano')">
+      <div class="itaon-topo">
+        <div class="itaon-selo" aria-hidden="true">${ICO.itaon}</div>
+        <div style="flex:1"><strong>Seu plano de ${estado.mes}</strong><div class="pequeno">ItaOn · toque para ver o painel</div></div>
+        <span class="seta" style="font-size:20px;color:var(--suave)">›</span>
+      </div>
+      <div class="mini">
+        ${roscaPlano(c, 110, "rc-home-plano")}
+        <div class="mini-info">
+          <span class="pequeno">Você pode gastar por dia</span>
+          <span class="num">${brl(c.porDia)}</span>
+          <span class="pequeno">até ${DEMO.proximoPagamento}</span>
+        </div>
+      </div>
+    </button>`;
+}
+
+/* Cartão da tela inicial com os gastos por área */
+function cartaoGastos() {
+  const { lista, total } = resumoAreas();
+  return `
+    <button class="cartao clicavel" onclick="abrirPainel('gastos')">
+      <div class="linha-cartao"><b>Para onde vai seu dinheiro</b><span class="seta">›</span></div>
+      <div class="mini">
+        ${rosca(lista, total, { tamanho: 110, id: "rc-home-gastos", rotulo: "30 dias", valor: total })}
+        <div class="mini-info">
+          ${lista.slice(0, 3).map(a => `
+            <div class="leg" style="font-size:14px"><span class="bolinha" style="background:${a.cor}"></span>
+              <span class="nome">${a.nome}</span><span class="valor">${brl(a.valor)}</span></div>`).join("")}
+          <span class="pequeno">+ ${lista.length - 3} áreas</span>
+        </div>
+      </div>
+    </button>`;
+}
+
+function abrirPainel(aba) { estado.abaPainel = aba; estado.areaSel = null; ir("painel"); }
+function selecionarArea(id) { estado.areaSel = estado.areaSel === id ? null : id; render(); }
+
+const TELAS = {
+  inicio() {
+    const jaUsou = estado.mesesUsados > 0;
+    return `
+      <div class="cabecalho">
+        <div class="avatar">${DEMO.iniciais}</div>
+        <div class="nome">${DEMO.nome}</div>
+        <div class="icones">${ICO.busca}${ICO.sino}${ICO.chat}</div>
+      </div>
+      <main>
+        <div class="secao-titulo">Minha conta</div>
+        <div class="atalhos">
+          <button class="atalho"><div class="caixa">${ICO.pix}</div><span>Pix e transferir</span></button>
+          <button class="atalho"><div class="caixa">${ICO.pagar}</div><span>Pagar</span></button>
+          <button class="atalho novo" onclick="comecar()"><div class="caixa">${ICO.itaon}</div><span>ItaOn</span></button>
+          <button class="atalho"><div class="caixa">${ICO.invest}</div><span>Investir</span></button>
+          <button class="atalho"><div class="caixa">${ICO.seguranca}</div><span>Segurança</span></button>
+        </div>
+
+        ${estado.salarioPendente ? `
+        <div class="cartao itaon-card">
+          <div class="itaon-topo">
+            <div class="itaon-selo" aria-hidden="true">${ICO.itaon}</div>
+            <div><strong>ItaOn</strong><div class="pequeno">seu assistente financeiro</div></div>
+          </div>
+          <p style="font-size:17px"><b>Seu salário de ${brl(DEMO.salario)} caiu!</b></p>
+          <p class="suave">${jaUsou
+            ? "Suas contas do mês passado já estão prontas. Leva 10 segundos."
+            : "Em 2 minutos, você descobre quanto dele está livre de verdade."}</p>
+          <button class="botao" onclick="comecar()">Vamos organizar o seu dinheiro?</button>
+        </div>` : cartaoPlano()}
+
+        ${cartaoGastos()}
+
+        <div class="cartao">
+          <div class="linha-cartao">${ICO.conta}<span>Conta corrente</span><span class="seta">›</span></div>
+          <div><div class="pequeno">Saldo disponível</div><div class="valor-saldo">${brl(DEMO.salario)}</div></div>
+        </div>
+      </main>
+      <nav class="navegacao">
+        <div class="ativo"><span class="ico">${ICO.casa}</span></div>
+        <div>${ICO.extrato}<span>Extrato</span></div>
+        <div>${ICO.pagamentos}<span>Pagamentos</span></div>
+        <div>${ICO.presente}<span>Pra você</span></div>
+        <div>${ICO.menu}<span>Menu</span></div>
+      </nav>`;
+  },
+
+  escrever() {
+    return `
+      ${cabecalhoFluxo("ItaOn", 1, "inicio")}
+      <main>
+        <div class="balao"><div class="itaon-selo" aria-hidden="true">${ICO.itaon}</div>
+          <div class="texto">Oi, ${DEMO.nome}! Me conta do seu jeito: pode escrever ou falar. Depois você confere tudo.</div></div>
+        <h2><label for="texto">Quais são suas contas do mês?</label></h2>
+        <textarea id="texto" placeholder="Ex.: pago 90 de internet, dou 400 pra minha mãe..." oninput="estado.texto=this.value; atualizarBotao()">${esc(estado.texto)}</textarea>
+        <div class="voz">
+          <button class="btn-mic ${estado.ouvindo ? "ouvindo" : ""}" id="btnMic" onclick="alternarVoz()"
+            aria-pressed="${estado.ouvindo}" aria-label="${estado.ouvindo ? "Parar de ouvir" : estado.vozModo === "teclado" ? "Ditar pelo teclado" : "Falar minhas contas"}">${estado.ouvindo ? ICO.parar : ICO.mic}</button>
+          <div class="voz-texto">
+            <b>${estado.vozFase === "preparando" ? "Abrindo o microfone..." : estado.ouvindo ? `Ouvindo<span class="ondas" aria-hidden="true"><span></span><span></span><span></span><span></span></span>` : estado.vozModo === "teclado" ? "Prefere falar? Use o teclado" : "Prefere falar?"}</b>
+            <span class="pequeno" id="vozStatus" aria-live="polite">${esc(estado.vozMsg || (estado.vozFase === "preparando" ? "Espere o sinal para começar a falar." : estado.ouvindo ? "Pode falar. Quando parar, eu termino sozinho." : estado.vozModo === "teclado" ? "Toque no microfone ao lado para ver como ditar." : "Toque no microfone e diga suas contas do mês."))}</span>
+            ${estado.vozModo === "api" && !estado.ouvindo && estado.vozMsg ? `<button class="link" style="text-align:left;padding:4px 0;min-height:36px" onclick="usarDitadoTeclado()">Usar o ditado do teclado</button>` : ""}
+            ${estado.vozModo === "teclado" && !motivoSemVozNoNavegador() ? `<button class="link" style="text-align:left;padding:4px 0;min-height:36px" onclick="tentarVozDeNovo()">Tentar a voz do navegador de novo</button>` : ""}
+          </div>
+        </div>
+        <div class="dica-teclado" id="dicaTeclado" ${estado.dicaTeclado ? "" : "hidden"}>${ICO.mic}<span>${textoDicaTeclado()}</span></div>
+        <div class="chips">
+          <button class="chip" onclick="usarExemplo()">Usar exemplo</button>
+          <button class="chip" onclick="simularAudio()">Simular áudio</button>
+        </div>
+        <div class="rodape">
+          <button class="botao" id="btnInterpretar" onclick="interpretar()" ${estado.texto.trim() && !estado.carregando && !estado.ouvindo ? "" : "disabled"}>
+            ${estado.carregando ? `<span class="spinner" aria-hidden="true"></span>ItaOn está organizando...` : "Organizar minhas contas"}
+          </button>
+          <span class="pequeno" style="text-align:center">O áudio é transcrito pelo navegador ou pelo teclado do aparelho. Nada é gravado.</span>
+        </div>
+      </main>`;
+  },
+
+  conferir() {
+    const c = calcular(estado);
+    const itens = estado.itens.map((it, i) => `
+      <div class="item-bloco ${it.revisar ? "revisar" : ""}">
+        <div class="item">
+          <input type="text" value="${esc(it.nome)}" aria-label="Nome" oninput="editar(${i},'nome',this.value,this)">
+          <input type="number" inputmode="decimal" min="0" value="${it.valor}" aria-label="Valor em reais" oninput="editar(${i},'valor',this.value,this)">
+          <button class="remover" aria-label="Remover" onclick="remover(${i})">${ICO.x}</button>
+        </div>
+        <div class="item-linha2">
+          <select aria-label="Categoria" onchange="editar(${i},'categoria',this.value,this)">
+            <option value="contas" ${it.categoria === "contas" ? "selected" : ""}>Contas do mês</option>
+            <option value="casa" ${it.categoria === "casa" ? "selected" : ""}>Casa/família</option>
+          </select>
+          ${it.revisar ? `<span class="marca-revisar">${ICO.alerta} ${it.revisar}</span>` : ""}
+        </div>
+      </div>`).join("");
+    return `
+      ${cabecalhoFluxo("ItaOn", 2, estado.mesesUsados > 0 ? "inicio" : "escrever")}
+      <main>
+        <h2>Confira se está certo?</h2>
+        <p class="suave">${estado.mesesUsados > 0
+          ? "O ItaOn trouxe as contas do mês passado. Mude o que for diferente."
+          : "O ItaOn separou seu texto nestes itens. Corrija o que precisar."}</p>
+        ${itens ? `<div class="cabecalho-itens" aria-hidden="true"><span>Conta</span><span>Valor (R$)</span></div>${itens}` : `<p class="suave">Nenhuma conta. Adicione abaixo.</p>`}
+        <button class="link" style="text-align:left" onclick="adicionar()">+ Adicionar conta</button>
+        <div class="cartao"><div class="total"><span>Total das contas</span><b id="total-contas">${brl(c.compromissos)}</b></div></div>
+        <div class="rodape">
+          <button class="botao" onclick="ir('distribuir')" ${estado.itens.length ? "" : "disabled"}>Está certo, continuar</button>
+        </div>
+      </main>`;
+  },
+
+  distribuir() {
+    const c = calcular(estado);
+    const pct = Math.round(c.maxGuardar / DEMO.salario * 100);
+    const produto = Object.values(SUGESTOES).flat().find(x => x.id === estado.produto);
+    let cartaoGuardar;
+    if (c.guardar > 0 && estado.modo === "investir") {
+      cartaoGuardar = `
+        <div class="cartao resumo-guardar">${ICO.invest}
+          <div class="txt"><b>Investindo ${brl(c.guardar)} por mês</b><div class="pequeno">${produto ? produto.nome : "Investimento"} · ${Math.round(c.guardar / c.maxGuardar * 100)}% do que sobrou</div></div>
+          <button class="link" onclick="abrirSheet('investir')">Alterar</button>
+        </div>`;
+    } else if (c.guardar > 0) {
+      cartaoGuardar = `
+        <div class="cartao resumo-guardar">${ICO.alvo}
+          <div class="txt"><b>${esc(estado.metaNome || "Objetivo")}: ${brl(c.guardar)} por mês</b><div class="pequeno">${c.mesesMeta ? `Pronto em ${c.mesesMeta} ${c.mesesMeta === 1 ? "mês" : "meses"}` : "Guardando todo mês"}</div></div>
+          <button class="link" onclick="abrirSheet('pessoal')">Alterar</button>
+        </div>`;
+    } else {
+      cartaoGuardar = `
+        <div class="cartao">
+          <p><b>Sobraram ${brl(c.maxGuardar)}, ${pct}% do seu salário.</b></p>
+          <p class="suave">O ItaOn pode sugerir onde investir uma parte. Você escolhe quanto.</p>
+          <button class="botao contorno" onclick="abrirSheet('investir')">Ver sugestões de investimento</button>
+        </div>`;
+    }
+    return `
+      ${cabecalhoFluxo("ItaOn", 3, "conferir")}
+      <main>
+        <h2>Como fica o seu salário</h2>
+        <div class="cartao" id="grafico-dist">${graficoDist(c)}</div>
+        ${c.falta > 0 ? `<div class="alerta" role="alert">${ICO.alerta}<span>Suas contas passam do salário em ${brl(c.falta)}. Volte e revise os valores.</span></div>` : cartaoGuardar}
+        <div class="rodape">
+          <button class="botao" onclick="finalizar()">Ver meu resultado</button>
+        </div>
+      </main>
+      ${estado.sheet && c.falta === 0 ? janelaGuardar(c) : ""}`;
+  },
+
+  resultado() {
+    const c = calcular(estado);
+    const tempo = estado.fimTarefa && estado.inicioTarefa ? Math.round((estado.fimTarefa - estado.inicioTarefa) / 1000) : null;
+    const produto = Object.values(SUGESTOES).flat().find(s => s.id === estado.produto);
+    let linhaGuardar = "";
+    if (c.guardar > 0 && estado.modo === "investir") {
+      linhaGuardar = `<div>${ICO.invest}<span>Investir: <b>${brl(c.guardar)}</b>${produto ? ` em ${produto.nome}` : ""}</span></div>`;
+    } else if (c.guardar > 0) {
+      linhaGuardar = `<div>${ICO.alvo}<span>${esc(estado.metaNome || "Objetivo")}: <b>${brl(c.guardar)}</b> por mês${c.mesesMeta ? ` · pronto em ${c.mesesMeta} ${c.mesesMeta === 1 ? "mês" : "meses"}` : ""}</span></div>`;
+    }
+    return `
+      ${cabecalhoFluxo("Seu mês", 4, "distribuir")}
+      <main>
+        <div class="heroi">
+          <div class="rot">Você pode gastar por dia</div>
+          <div class="grande">${brl(c.porDia)}</div>
+          <div class="sub">até ${DEMO.proximoPagamento} · ${DEMO.diasAteProximo} dias</div>
+        </div>
+        ${c.falta > 0 ? `<div class="alerta" role="alert">${ICO.alerta}<span>Faltam ${brl(c.falta)} para pagar as contas que você listou.</span></div>` : ""}
+        <div class="cartao">
+          <div class="rosca-area">${roscaPlano(c, 190, "rc-res")}</div>
+          ${legendaPlano(c)}
+        </div>
+        <div class="cartao resumo">
+          <span class="etiqueta-ia">${ICO.itaon}Resumo do ItaOn</span>
+          <div>${ICO.check}<span>Contas: <b>${brl(c.contas)}</b></span></div>
+          ${c.casa > 0 ? `<div>${ICO.casa}<span>Casa/família: <b>${brl(c.casa)}</b></span></div>` : ""}
+          ${linhaGuardar}
+          <div>${ICO.carteira}<span>Livre: <b>${brl(Math.max(0, c.livre))}</b> no mês</span></div>
+        </div>
+        <div class="cartao">
+          <p style="display:flex;gap:8px;align-items:center"><b style="display:contents">${ICO.sino}O ItaOn te avisa</b></p>
+          <p class="suave">2 dias antes de cada conta vencer. No próximo salário, suas contas já vêm prontas.</p>
+        </div>
+        ${MODO_TESTE && tempo !== null ? `<p class="cronometro">⏱ Tempo da tarefa: ${Math.floor(tempo / 60)}min ${tempo % 60}s</p>` : ""}
+        <div class="rodape">
+          <button class="botao" onclick="ir('inicio')">Ver na tela inicial</button>
+          <button class="botao azul" onclick="proximoSalario()">Simular o próximo salário</button>
+          <button class="link" onclick="reiniciar()">Recomeçar a demo</button>
+        </div>
+      </main>`;
+  },
+};
+
+TELAS.painel = function () {
+  const c = calcular(estado);
+  const { lista, total } = resumoAreas();
+  const abas = `
+    <div class="abas">
+      <button class="${estado.abaPainel === "plano" ? "ativo" : ""}" onclick="abrirPainel('plano')">Plano do mês</button>
+      <button class="${estado.abaPainel === "gastos" ? "ativo" : ""}" onclick="abrirPainel('gastos')">Gastos por área</button>
+    </div>`;
+
+  let conteudo;
+  if (estado.abaPainel === "plano") {
+    conteudo = estado.planoFeito ? `
+      <div class="heroi">
+        <div class="rot">Você pode gastar por dia</div>
+        <div class="grande">${brl(c.porDia)}</div>
+        <div class="sub">até ${DEMO.proximoPagamento} · ${DEMO.diasAteProximo} dias</div>
+      </div>
+      <div class="cartao">
+        <div class="rosca-area">${roscaPlano(c, 200, "rc-painel-plano")}</div>
+        ${legendaPlano(c)}
+      </div>
+      <button class="botao contorno" onclick="comecar()">Editar meu plano</button>` : `
+      <div class="cartao">
+        <p><b>Você ainda não organizou o salário de ${estado.mes}.</b></p>
+        <p class="suave">Leva 2 minutos com o ItaOn.</p>
+        <button class="botao" onclick="comecar()">Vamos organizar o seu dinheiro?</button>
+      </div>`;
+  } else {
+    const sel = lista.find(a => a.id === estado.areaSel);
+    const maior = lista[0];
+    const transacoes = TRANSACOES.filter(t => !estado.areaSel || t.area === estado.areaSel);
+    const cor = id => AREAS.find(a => a.id === id).cor;
+    let comparacao = "";
+    if (estado.planoFeito) {
+      const livre = Math.max(0, c.livre), dif = total - livre;
+      comparacao = dif > 0
+        ? `<p>No mês passado, seu dia a dia custou <b>${brl(total)}</b>. Seu plano de ${estado.mes} tem <b>${brl(livre)}</b> livres: <b>${brl(dif)} a menos</b>.</p>`
+        : `<p>No mês passado, seu dia a dia custou <b>${brl(total)}</b>. Seu plano de ${estado.mes} tem <b>${brl(livre)}</b> livres: dá para manter o ritmo.</p>`;
+    }
+    conteudo = `
+      <p class="suave">Últimos 30 dias · dia a dia (sem as contas fixas)</p>
+      <div class="cartao">
+        <div class="rosca-area">${rosca(lista, total, { tamanho: 200, id: "rc-painel-gastos", rotulo: "Gasto total", valor: total })}</div>
+        <div class="legenda">${lista.map(a => `
+          <div class="leg clicavel ${estado.areaSel === a.id ? "sel" : ""}" onclick="selecionarArea('${a.id}')">
+            <span class="bolinha" style="background:${a.cor}"></span>
+            <span class="nome">${a.nome}<span class="sub">${a.qtd} ${a.unidade[a.qtd === 1 ? 0 : 1]}</span></span>
+            <span class="valor">${brl(a.valor)}</span>
+            <span class="pct">${Math.round(a.valor / total * 100)}%</span></div>`).join("")}</div>
+      </div>
+      <div class="insight">
+        <span class="etiqueta-ia">${ICO.itaon}ItaOn</span>
+        ${comparacao}
+        <p>Seu maior gasto foi <b>${maior.nome}</b>: ${brl(maior.valor)} em ${maior.qtd} ${maior.unidade[1]} (média de ${brl(Math.round(maior.valor / maior.qtd))}).</p>
+      </div>
+      <div class="cartao">
+        <div class="linha-cartao"><b>${sel ? `Gastos com ${sel.nome}` : "Últimos gastos"}</b>
+          ${sel ? `<button class="link" style="margin-left:auto" onclick="selecionarArea(null)">Ver todos</button>` : ""}</div>
+        <div>${transacoes.slice(0, sel ? 20 : 8).map(t => `
+          <div class="transacao"><span class="bolinha" style="background:${cor(t.area)}"></span>
+            <span class="desc">${t.nome}<span>${t.data}</span></span><b>${brl(t.valor)}</b></div>`).join("")}</div>
+        <p class="pequeno">Toque numa área para filtrar. Categorias feitas pelo ItaOn · dados fictícios.</p>
+      </div>`;
+  }
+  return `
+    ${cabecalhoSimples("Meu dinheiro", "com o ItaOn", "inicio")}
+    <main>${abas}${conteudo}</main>`;
+};
+
+/* =========================================================
+   5a. JANELA "SOBROU DINHEIRO": investir ou guardar para um objetivo
+   Abre sozinha na primeira vez que a pessoa chega à distribuição.
+   ========================================================= */
+function campoGuardar() { return estado.sheet === "pessoal" ? "metaMensal" : "investir"; }
+
+function textoPreviaDia(c) {
+  return `Fica para o dia a dia: <b>${brl(Math.max(0, c.livre))}</b> · cerca de <b>${brl(c.porDia)} por dia</b>`;
+}
+function textoBotaoSheet(c) {
+  if (c.guardar <= 0) return "Continuar sem guardar";
+  return estado.sheet === "pessoal" ? `Guardar ${brl(c.guardar)} por mês` : `Investir ${brl(c.guardar)} por mês`;
+}
+
+function controleValor(c, rotulo) {
+  const v = estado[campoGuardar()];
+  const pct = c.maxGuardar ? Math.round(v / c.maxGuardar * 100) : 0;
+  return `
+    <label class="rotulo" for="valorGuardar">${rotulo}</label>
+    <div class="valor-escolhido"><span class="v" id="vGuardar">${brl(v)}</span><span class="pequeno" id="pGuardar">${pct}% do que sobrou</span></div>
+    <input type="range" id="valorGuardar" min="0" max="${c.maxGuardar}" step="10" value="${v}"
+      aria-valuetext="${brl(v)}, ${pct}% do que sobrou" oninput="ajustarGuardar(this.value, 'slider')">
+    <div class="limites pequeno"><span>R$ 0</span><span>${brl(c.maxGuardar)}</span></div>
+    <div class="editar-valor"><label class="pequeno" for="valorGuardarNum">Ou digite o valor (R$):</label>
+      <input type="number" id="valorGuardarNum" inputmode="decimal" min="0" max="${c.maxGuardar}" value="${v}" oninput="ajustarGuardar(this.value, 'numero')"></div>
+    <div class="info" id="previaDia">${textoPreviaDia(c)}</div>`;
+}
+
+function janelaGuardar(c) {
+  const pctSobra = Math.round(c.maxGuardar / DEMO.salario * 100);
+  const anim = estado.sheetAnim ? "entrando" : "";
+  let corpo;
+  if (estado.sheet === "investir") {
+    const sugestoes = SUGESTOES[estado.prazo];
+    corpo = `
+      <div class="sheet-topo">
+        <div class="itaon-selo" aria-hidden="true">${ICO.itaon}</div>
+        <div><h3 id="sheetTitulo" tabindex="-1">Sobraram ${brl(c.maxGuardar)}</h3>
+          <p class="suave">${pctSobra}% do seu salário ficou livre depois das contas. Que tal investir uma parte?</p></div>
+        <button class="fechar" aria-label="Fechar" onclick="fecharSheet()">${ICO.x}</button>
+      </div>
+      ${controleValor(c, "Quanto você quer investir por mês?")}
+      <p class="rotulo">Quando você pode precisar desse dinheiro?</p>
+      <div class="prazos" role="radiogroup" aria-label="Prazo de resgate">
+        ${PRAZOS.map(p => `<button class="prazo ${estado.prazo === p.id ? "ativo" : ""}" role="radio" aria-checked="${estado.prazo === p.id}" onclick="escolherPrazo('${p.id}')"><b>${p.nome}</b><span>${p.sub}</span></button>`).join("")}
+      </div>
+      <p class="rotulo" style="display:flex;gap:6px;align-items:center">${ICO.itaon} O ItaOn sugere para você</p>
+      ${sugestoes.map((x, i) => `
+        <button class="sugestao ${estado.produto === x.id ? "ativo" : ""}" role="radio" aria-checked="${estado.produto === x.id}" onclick="escolherProduto('${x.id}')">
+          <span class="radio"></span>
+          <span><strong>${x.nome}</strong><span class="suave">${x.desc}</span>
+            <span class="tags">${i === 0 ? `<span class="tag recomendado">Sugestão do ItaOn</span>` : ""}${x.tags.map(t => `<span class="tag">${t}</span>`).join("")}</span></span>
+        </button>`).join("")}
+      <p class="pequeno">Sugestões educativas do protótipo, sem taxas reais. Na versão real, dependem do seu perfil de investidor.</p>
+      <button class="link" style="text-align:left" onclick="abrirSheet('pessoal')">Prefiro guardar para um objetivo (ex.: bicicleta)</button>`;
+  } else {
+    corpo = `
+      <div class="sheet-topo">
+        <div class="itaon-selo" aria-hidden="true">${ICO.alvo}</div>
+        <div><h3 id="sheetTitulo" tabindex="-1">Guardar para um objetivo</h3>
+          <p class="suave">Sobraram ${brl(c.maxGuardar)} (${pctSobra}% do salário). Separe uma parte para algo que você quer.</p></div>
+        <button class="fechar" aria-label="Fechar" onclick="fecharSheet()">${ICO.x}</button>
+      </div>
+      <label class="rotulo" for="metaNome">Qual é o seu objetivo?</label>
+      <input id="metaNome" type="text" placeholder="Ex.: bicicleta nova" value="${esc(estado.metaNome)}" oninput="estado.metaNome=this.value">
+      <label class="rotulo" for="metaValor">Quanto ele custa? (R$)</label>
+      <input id="metaValor" type="number" inputmode="decimal" min="0" placeholder="Ex.: 1500" value="${estado.metaValor || ""}" oninput="estado.metaValor=Math.max(0, Number(this.value)||0); atualizarJanela()">
+      ${controleValor(c, "Quanto quer guardar por mês?")}
+      <div id="meta-prev">${previsaoMeta(c)}</div>
+      <button class="link" style="text-align:left" onclick="abrirSheet('investir')">Ver sugestões de investimento</button>`;
+  }
+  return `
+    <div class="sheet-fundo ${anim}" onclick="fecharSheet()"></div>
+    <div class="sheet ${anim}" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo">
+      <div class="alca" aria-hidden="true"></div>
+      ${corpo}
+      <div class="sheet-rodape">
+        <button class="botao" id="btnSheet" onclick="confirmarSheet()">${textoBotaoSheet(c)}</button>
+        <button class="link" onclick="agoraNao()">Agora não</button>
+      </div>
+    </div>`;
+}
+
+function abrirSheet(tipo) {
+  const c = calcular(estado);
+  if (c.maxGuardar <= 0) return;
+  estado.sheet = tipo; estado.modo = tipo;
+  estado.sheetVisto = true; estado.sheetAnim = true;
+  if (tipo === "investir") {
+    if (!estado.investir) estado.investir = Math.floor(c.maxGuardar * 0.10 / 10) * 10;   // começa em ~10% do que sobrou
+    if (!estado.produto) estado.produto = SUGESTOES[estado.prazo][0].id;
+  } else if (!estado.metaMensal) {
+    estado.metaMensal = Math.floor(c.maxGuardar * 0.10 / 10) * 10;
+  }
+  render();
+  estado.sheetAnim = false;
+  document.body.style.overflow = "hidden";
+  const tituloSheet = document.getElementById("sheetTitulo"); if (tituloSheet) tituloSheet.focus();
+}
+function fecharSheet() {
+  estado.sheet = null; document.body.style.overflow = ""; render();
+}
+function confirmarSheet() { fecharSheet(); }
+function agoraNao() { estado[campoGuardar()] = 0; fecharSheet(); }
+function escolherPrazo(id) { estado.prazo = id; estado.produto = SUGESTOES[id][0].id; render(); }
+function escolherProduto(id) { estado.produto = id; render(); }
+
+/* Atualiza só textos, gráfico e botão enquanto o controle desliza (sem redesenhar a janela). */
+function ajustarGuardar(valor, origem) {
+  const c0 = calcular(estado);
+  estado[campoGuardar()] = Math.min(c0.maxGuardar, Math.max(0, Math.round(Number(valor) || 0)));
+  if (origem === "slider") { const n = document.getElementById("valorGuardarNum"); if (n) n.value = estado[campoGuardar()]; }
+  if (origem === "numero") { const r = document.getElementById("valorGuardar"); if (r) r.value = estado[campoGuardar()]; }
+  atualizarJanela();
+}
+function atualizarJanela() {
+  const c = calcular(estado);
+  const v = estado[campoGuardar()], pct = c.maxGuardar ? Math.round(v / c.maxGuardar * 100) : 0;
+  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  set("vGuardar", brl(v)); set("pGuardar", `${pct}% do que sobrou`);
+  set("previaDia", textoPreviaDia(c)); set("btnSheet", textoBotaoSheet(c));
+  set("meta-prev", previsaoMeta(c)); set("grafico-dist", graficoDist(c));
+  const faixa = document.getElementById("valorGuardar"); if (faixa) faixa.setAttribute("aria-valuetext", `${brl(v)}, ${pct}% do que sobrou`);
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && estado.sheet) fecharSheet(); });
+
+/* =========================================================
+   5b. VOZ: o Cláudio fala as contas em vez de digitar
+   Usa o reconhecimento de fala do próprio navegador (Web Speech API).
+   No Chrome, o áudio é enviado ao serviço de voz do Google: ok para
+   protótipo; num produto real, usar um serviço do banco (LGPD).
+   ========================================================= */
+const Reconhecimento = window.SpeechRecognition || window.webkitSpeechRecognition;
+const UA = navigator.userAgent || "";
+const TELA_TOQUE = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+const EH_IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const EH_MAC = /Macintosh/.test(UA) && !EH_IOS;
+const EH_WINDOWS = /Windows/.test(UA);
+
+/* Navegadores que dizem ter reconhecimento de voz, mas não entregam (Brave, Opera,
+   navegadores dentro do WhatsApp/Instagram/Facebook, WebView do Android). */
+function motivoSemVozNoNavegador() {
+  if (!Reconhecimento) return "Este navegador não tem reconhecimento de voz.";
+  if (!window.isSecureContext) return /^(file|content):/.test(location.protocol)
+    ? "Você abriu o arquivo direto no aparelho: o navegador bloqueia o microfone assim. Abra pelo link https (GitHub Pages)."
+    : "O microfone só funciona em endereço seguro (https).";
+  if (navigator.brave) return "O Brave bloqueia o reconhecimento de voz.";
+  if (/OPR\/|Opera|FBAN|FBAV|Instagram|Line\/|WhatsApp|; wv\)/.test(UA)) return "Este navegador não tem reconhecimento de voz.";
+  return "";
+}
+
+/* Diagnóstico: abra com ?debug=1 no fim do endereço para ver o que o navegador responde. */
+const DEBUG_VOZ = /[?&]debug=1/.test(location.search);
+function logVoz(msg) {
+  if (!DEBUG_VOZ) return;
+  const t = new Date().toLocaleTimeString("pt-BR");
+  console.log("[voz]", msg);
+  let el = document.getElementById("logVoz");
+  if (!el) {
+    el = document.createElement("pre"); el.id = "logVoz";
+    el.style.cssText = "position:fixed;left:0;right:0;bottom:0;max-height:38vh;overflow:auto;margin:0;padding:8px;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.35 monospace;z-index:99;white-space:pre-wrap";
+    document.body.appendChild(el);
+  }
+  el.textContent += t + "  " + msg + "\n"; el.scrollTop = el.scrollHeight;
+}
+if (DEBUG_VOZ) setTimeout(() => {
+  logVoz("protocolo=" + location.protocol + " seguro=" + window.isSecureContext + " API=" + (window.SpeechRecognition ? "SpeechRecognition" : window.webkitSpeechRecognition ? "webkitSpeechRecognition" : "nenhuma"));
+  logVoz("UA=" + navigator.userAgent);
+  if (navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: "microphone" }).then(r => logVoz("permissão microfone=" + r.state)).catch(e => logVoz("permissão: não consultável"));
+}, 300);
+
+let falhasSeguidas = 0;
+let rec = null, textoAntesDaVoz = "", timerVoz = null, timerSimulacao = null, timerFim = null, timerInicio = null, quadroPendente = false;
+const VAI_PARA_TECLADO = { "network": "Sem acesso ao serviço de voz deste navegador.", "service-not-allowed": "O reconhecimento de voz está desligado neste aparelho.", "language-not-supported": "Este navegador não reconhece português.", "bad-grammar": "" };
+const ERROS_VOZ = {
+  "not-allowed": "O microfone foi bloqueado. Libere nas configurações do navegador ou use o ditado do teclado.",
+  "no-speech": "Não ouvi nada. Toque no microfone e fale logo depois do sinal.",
+  "audio-capture": "Nenhum microfone encontrado neste aparelho.",
+  "aborted": "",
+};
+
+function textoDicaTeclado() {
+  if (TELA_TOQUE) return EH_IOS
+    ? "Toque na caixa de texto e depois no <b>microfone do teclado</b> (canto de baixo). Fale suas contas e toque em OK."
+    : "Toque na caixa de texto e depois no <b>microfone do teclado</b> (em cima, à direita). Fale suas contas.";
+  if (EH_WINDOWS) return "Clique na caixa de texto e aperte <b>Windows + H</b> para ditar suas contas.";
+  if (EH_MAC) return "Clique na caixa de texto e aperte a tecla <b>Fn duas vezes</b> (ou use o menu Editar &gt; Iniciar Ditado).";
+  return "Use o Chrome, o Edge ou o Safari para falar, ou digite suas contas.";
+}
+
+function mostrarTextoVoz() {
+  if (quadroPendente) return;
+  quadroPendente = true;
+  requestAnimationFrame(() => {
+    quadroPendente = false;
+    const t = document.getElementById("texto");
+    if (t) { t.value = estado.texto; t.scrollTop = t.scrollHeight; }
+    atualizarBotao();
+  });
+}
+function mostrarStatusVoz(msg) { const el = document.getElementById("vozStatus"); if (el) el.textContent = msg; }
+function alternarVoz() {
+  if (estado.vozModo === "teclado") { usarDitadoTeclado(); return; }
+  estado.ouvindo ? pararVoz() : iniciarVoz();
+}
+
+/* Plano B universal: o ditado do próprio teclado (Android, iPhone, Windows, Mac).
+   Precisa focar a caixa no mesmo toque, senão o iPhone não abre o teclado. */
+function usarDitadoTeclado() {
+  encerrarVoz();
+  const t = document.getElementById("texto");
+  if (t) { t.focus(); const fim = t.value.length; try { t.setSelectionRange(fim, fim); } catch (e) {} }
+  estado.dicaTeclado = true;
+  const dica = document.getElementById("dicaTeclado"); if (dica) dica.hidden = false;
+}
+function mudarParaTeclado(motivo) {
+  estado.vozModo = "teclado";
+  estado.vozMsg = (motivo ? motivo + " " : "") + "Use o ditado do teclado.";
+}
+/* Falha durante o uso: avisa e oferece o teclado, mas deixa tentar de novo.
+   Só troca de modo depois de 2 falhas seguidas do mesmo tipo "sem serviço". */
+function falhaVoz(motivo, trocar) {
+  falhasSeguidas += 1;
+  if (trocar && falhasSeguidas >= 2) mudarParaTeclado(motivo);
+  else estado.vozMsg = motivo + " Tente de novo ou use o ditado do teclado.";
+}
+function tentarVozDeNovo() { estado.vozModo = "api"; estado.vozMsg = ""; estado.dicaTeclado = false; falhasSeguidas = 0; iniciarVoz(); }
+
+function juntarSemRepetir(a, b) {
+  const A = a.toLowerCase(), B = b.toLowerCase();
+  if (!a) return b;
+  if (!b || A.endsWith(B)) return a;
+  if (B.startsWith(A)) return b;
+  return a + " " + b;
+}
+
+function iniciarVoz() {
+  const motivo = motivoSemVozNoNavegador();
+  if (motivo) { mudarParaTeclado(motivo); render(); return; }
+  encerrarVoz();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
+  try { rec = new Reconhecimento(); }
+  catch (e) { logVoz("erro ao criar: " + e.message); mudarParaTeclado("Não consegui abrir o reconhecimento de voz."); render(); return; }
+  rec.lang = "pt-BR";
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
+  textoAntesDaVoz = estado.texto.trim() ? estado.texto.trim().replace(/,?$/, ", ") : "";
+  let finais = "";
+
+  const comecouAOuvir = (ev) => {
+    logVoz(ev);
+    clearTimeout(timerInicio);
+    if (estado.vozFase !== "preparando") return;
+    estado.vozFase = "ouvindo"; render();
+    if (navigator.vibrate) navigator.vibrate(30);
+  };
+  rec.onstart = () => comecouAOuvir("onstart");
+  rec.onaudiostart = () => comecouAOuvir("onaudiostart");
+  rec.onspeechstart = () => logVoz("onspeechstart (ouviu voz)");
+  rec.onresult = e => {
+    clearTimeout(timerInicio); falhasSeguidas = 0;
+    if (estado.vozFase === "preparando") { estado.vozFase = "ouvindo"; }
+    let parcial = "";
+    for (let i = e.resultIndex || 0; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript.trim();
+      if (e.results[i].isFinal) finais = juntarSemRepetir(finais, t);
+      else parcial = t;
+    }
+    estado.texto = textoAntesDaVoz + normalizarMoeda(juntarSemRepetir(finais, parcial));
+    logVoz("onresult: " + estado.texto);
+    mostrarTextoVoz();
+  };
+  rec.onerror = e => {
+    logVoz("onerror: " + e.error + (e.message ? " (" + e.message + ")" : ""));
+    if (e.error in VAI_PARA_TECLADO) { falhaVoz(VAI_PARA_TECLADO[e.error] || "O serviço de voz falhou.", true); return; }
+    const msg = ERROS_VOZ[e.error];
+    estado.vozMsg = msg === undefined ? "Não consegui ouvir. Tente de novo ou use o ditado do teclado." : msg;
+  };
+  rec.onend = () => { logVoz("onend"); finalizarVoz(); };
+
+  estado.ouvindo = true; estado.vozFase = "preparando"; estado.vozMsg = ""; render();
+  try { rec.start(); logVoz("start() chamado"); }
+  catch (e) { logVoz("erro no start: " + e.message); rec = null; estado.ouvindo = false; estado.vozFase = ""; falhaVoz("Não consegui abrir o microfone.", false); render(); return; }
+  // Vigia: se o navegador nunca começar a ouvir, destrava a tela.
+  // Enquanto o Android mostra "Permitir microfone?", não conta tempo: a pessoa está decidindo.
+  const armarVigia = (ms) => {
+    timerInicio = setTimeout(() => {
+      if (estado.vozFase !== "preparando") return;
+      logVoz("vigia: navegador não começou a ouvir em " + ms / 1000 + " s");
+      encerrarVoz(); falhaVoz("O microfone não respondeu.", true); render();
+    }, ms);
+  };
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: "microphone" })
+      .then(r => { logVoz("permissão microfone=" + r.state); armarVigia(r.state === "prompt" ? 30000 : 10000); })
+      .catch(() => armarVigia(15000));
+  } else armarVigia(15000);
+  timerVoz = setTimeout(pararVoz, 20000);
+}
+
+function finalizarVoz() {
+  clearTimeout(timerVoz); clearTimeout(timerFim); clearTimeout(timerInicio);
+  if (!estado.ouvindo) return;
+  rec = null; estado.ouvindo = false; estado.vozFase = "";
+  if (!estado.vozMsg && estado.texto.trim()) falhasSeguidas = 0;
+  if (!estado.vozMsg) estado.vozMsg = estado.texto.trim()
+    ? "Pronto! Confira o texto. Para falar mais, toque no microfone de novo."
+    : "Não ouvi nada. Toque no microfone e fale logo depois do sinal.";
+  render();
+}
+
+function pararVoz() {
+  if (timerSimulacao) { clearInterval(timerSimulacao); timerSimulacao = null; estado.ouvindo = false; estado.vozFase = ""; estado.vozMsg = "Simulação interrompida."; render(); return; }
+  if (rec) {
+    mostrarStatusVoz("Finalizando...");
+    try { rec.stop(); } catch (e) {}
+    timerFim = setTimeout(finalizarVoz, 1500);
+  }
+}
+function encerrarVoz() {
+  if (rec) { rec.onend = null; rec.onresult = null; rec.onerror = null; rec.onstart = null; try { rec.abort(); } catch (e) {} rec = null; }
+  if (timerSimulacao) { clearInterval(timerSimulacao); timerSimulacao = null; }
+  clearTimeout(timerVoz); clearTimeout(timerFim); clearTimeout(timerInicio);
+  estado.ouvindo = false; estado.vozFase = "";
+}
+
+/* Simula uma fala transcrita (sem vírgulas, como o navegador devolve).
+   Útil para a demo gravada e para navegadores sem reconhecimento de voz. */
+function simularAudio() {
+  encerrarVoz();
+  const palavras = DEMO.falaExemplo.split(" ");
+  estado.texto = ""; estado.ouvindo = true; estado.vozFase = "ouvindo"; estado.vozMsg = "Simulação de áudio (demo)"; render();
+  let i = 0;
+  timerSimulacao = setInterval(() => {
+    estado.texto = palavras.slice(0, ++i).join(" "); mostrarTextoVoz();
+    if (i >= palavras.length) {
+      clearInterval(timerSimulacao); timerSimulacao = null;
+      estado.ouvindo = false; estado.vozFase = ""; estado.vozMsg = "Áudio simulado. Confira o texto e toque em Organizar."; render();
+    }
+  }, 180);
+}
+
+/* =========================================================
+   6. AÇÕES
+   ========================================================= */
+function comecar() { estado.inicioTarefa = Date.now(); estado.fimTarefa = null; ir(estado.mesesUsados > 0 ? "conferir" : "escrever"); }
+function usarExemplo() { estado.texto = DEMO.textoExemplo; render(); }
+function atualizarBotao() { const b = document.getElementById("btnInterpretar"); if (b) b.disabled = !estado.texto.trim() || estado.carregando || estado.ouvindo; }
+async function interpretar() {
+  encerrarVoz();
+  estado.carregando = true; render();
+  estado.itens = await interpretarTexto(estado.texto);
+  estado.carregando = false; ir("conferir");
+}
+/* Edita sem redesenhar a tela inteira (senão o próximo toque se perde). */
+function editar(i, campo, valor, el) {
+  const it = estado.itens[i];
+  it[campo] = campo === "valor" ? Math.max(0, Number(valor) || 0) : valor;
+  it.revisar = "";
+  const bloco = el && el.closest(".item-bloco");
+  if (bloco) { bloco.classList.remove("revisar"); const marca = bloco.querySelector(".marca-revisar"); if (marca) marca.remove(); }
+  const t = document.getElementById("total-contas");
+  if (t) t.textContent = brl(calcular(estado).compromissos);
+}
+function remover(i) { estado.itens.splice(i, 1); render(); }
+function adicionar() { estado.itens.push({ nome: "Nova conta", valor: 0, categoria: "contas", revisar: "Preencha o valor" }); render(); }
+function definir(campo, valor) {
+  const numericos = ["investir", "metaValor", "metaMensal"];
+  estado[campo] = numericos.includes(campo) ? Math.max(0, Number(valor) || 0) : valor;
+  if (campo === "prazo") estado.produto = null;
+  render();
+}
+function graficoDist(c) { return `<div class="rosca-area">${roscaPlano(c, 210, "rc-dist")}</div>${legendaPlano(c)}`; }
+function previsaoMeta(c) {
+  return c.mesesMeta ? `<div class="meta-previsao">Guardando <b>${brl(c.guardar)}</b> por mês, você chega lá em <b>${c.mesesMeta} ${c.mesesMeta === 1 ? "mês" : "meses"}</b>.</div>` : "";
+}
+/* Atualiza só o gráfico e a previsão enquanto a pessoa digita. */
+function digitar(campo, valor) {
+  estado[campo] = campo === "metaNome" ? valor : Math.max(0, Number(valor) || 0);
+  const c = calcular(estado);
+  const g = document.getElementById("grafico-dist"); if (g) g.innerHTML = graficoDist(c);
+  const m = document.getElementById("meta-prev"); if (m) m.innerHTML = previsaoMeta(c);
+}
+function finalizar() {
+  estado.fimTarefa = Date.now();
+  estado.planoFeito = true; estado.salarioPendente = false;
+  if (MODO_TESTE) console.log("[teste] tempo da tarefa (s):", Math.round((estado.fimTarefa - estado.inicioTarefa) / 1000));
+  ir("resultado");
+}
+function proximoSalario() { estado.mesesUsados += 1; estado.salarioPendente = true; estado.mes = DEMO.mesSeguinte; estado.itens.forEach(i => i.revisar = ""); ir("inicio"); }
+function reiniciar() {
+  Object.assign(estado, { tela: "inicio", texto: "", itens: [], modo: "investir", investir: 0, prazo: "agora", produto: null,
+    metaNome: "", metaValor: 0, metaMensal: 0, mes: DEMO.mesAtual, mesesUsados: 0, inicioTarefa: null, fimTarefa: null,
+    salarioPendente: true, planoFeito: false, abaPainel: "plano", areaSel: null, ouvindo: false, vozMsg: "", sheet: null, sheetVisto: false, dicaTeclado: false });
+  render();
+}
+
+if (motivoSemVozNoNavegador()) estado.vozModo = "teclado";
+
+function render() { document.getElementById("app").innerHTML = TELAS[estado.tela](); }
+render();
+</script>
+</body>
+</html>
